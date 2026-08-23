@@ -1,0 +1,17 @@
+[
+  {"id": "P001", "name": "Trailblaze Running Shoes", "category": "footwear", "price": 2499, "stock": 18, "description": "Lightweight running shoes with breathable mesh upper, suited for daily 5-10km runs."},
+  {"id": "P002", "name": "UrbanStride Sneakers", "category": "footwear", "price": 1899, "stock": 25, "description": "Casual everyday sneakers with cushioned sole, streetwear fit."},
+  {"id": "P003", "name": "PeakGrip Trekking Shoes", "category": "footwear", "price": 3299, "stock": 9, "description": "Ankle-support trekking shoes with reinforced rubber grip for uneven terrain."},
+  {"id": "P004", "name": "AeroFit Sports Socks (Pack of 3)", "category": "footwear", "price": 349, "stock": 60, "description": "Moisture-wicking ankle-length sports socks, pack of 3 pairs."},
+  {"id": "P005", "name": "FlexCore Yoga Mat", "category": "fitness", "price": 899, "stock": 30, "description": "6mm non-slip yoga mat with carry strap."},
+  {"id": "P006", "name": "PowerGrip Adjustable Dumbbells (Pair)", "category": "fitness", "price": 4499, "stock": 12, "description": "Adjustable 2-10kg dumbbell pair, dial-based weight change."},
+  {"id": "P007", "name": "PulseTrack Fitness Band", "category": "electronics", "price": 1799, "stock": 22, "description": "Heart-rate and step-tracking fitness band, 7-day battery life."},
+  {"id": "P008", "name": "BassWave Wireless Earbuds", "category": "electronics", "price": 2299, "stock": 17, "description": "In-ear wireless earbuds with 24-hour case battery, IPX4 sweat resistance."},
+  {"id": "P009", "name": "SprintDry Running T-Shirt", "category": "apparel", "price": 699, "stock": 40, "description": "Quick-dry polyester running t-shirt, breathable panel design."},
+  {"id": "P010", "name": "ThermoFlex Track Jacket", "category": "apparel", "price": 1599, "stock": 20, "description": "Lightweight zip-up track jacket for cool-weather runs."},
+  {"id": "P011", "name": "HydroCarry Sports Bottle (1L)", "category": "accessories", "price": 449, "stock": 55, "description": "Insulated 1-litre sports bottle, leak-proof flip cap."},
+  {"id": "P012", "name": "CoreBand Resistance Set", "category": "fitness", "price": 599, "stock": 35, "description": "Set of 5 resistance bands, varying tension levels, with carry pouch."},
+  {"id": "P013", "name": "SwiftLace No-Tie Laces", "category": "footwear", "price": 249, "stock": 70, "description": "Elastic no-tie shoelaces, one-size, fits most sneakers."},
+  {"id": "P014", "name": "GripFlex Training Gloves", "category": "fitness", "price": 799, "stock": 28, "description": "Padded gym gloves with wrist wrap support."},
+  {"id": "P015", "name": "NightRun Reflective Vest", "category": "apparel", "price": 549, "stock": 15, "description": "High-visibility reflective vest for early morning or night runs."}
+]
