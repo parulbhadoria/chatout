@@ -51,8 +51,7 @@ The differentiator isn't the chat interface. It's that the gate deciding whether
 
 ## Architecture
 
-Human (chat) → `human_agent` / `chat.py` router  ─┐
-AI Buyer (goal) → `ai_buyer_agent.py` ────────────┼──▶ **TransactionGate** (`gate.py`) ──▶ Razorpay API (test mode)
+Both the human chat agent and the AI buyer agent send their `create_order` calls through the exact same `TransactionGate` instance (`gate.py`) — there is no separate, looser code path for either one. Only after the gate approves a request does the system call the Razorpay API.
 
 The gate enforces, in plain deterministic Python:
 - a spend cap (₹5,000), checked **per request** and **cumulatively** across all prior allowed orders for that caller
