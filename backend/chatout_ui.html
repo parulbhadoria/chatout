@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chatout — Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161A1E;
+    --ink-soft: #262C33;
+    --paper: #F7F4EC;
+    --paper-dim: #EFEADB;
+    --rule: #D9D2C0;
+    --rule-strong: #C4BBA3;
+    --ink-text: #1E2226;
+    --muted: #756E5C;
+
+    --allow: #2F6B4F;
+    --allow-bg: #E4EFE8;
+    --block: #A23B2E;
+    --block-bg: #F5E4E1;
+    --replay: #8A7F68;
+    --replay-bg: #ECE7DA;
+
+    --human: #2A5B6E;
+    --human-bg: #E2EBED;
+    --ai: #B5763A;
+    --ai-bg: #F3E6D5;
+
+    --font-display: 'Fraunces', serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper-dim);
+    color: var(--ink-text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 28px 24px 24px;
+  }
+  header .wrap { max-width: 960px; margin: 0 auto; }
+  header .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #A9A18C;
+    margin-bottom: 6px;
+  }
+  header h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 34px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  header p.tagline {
+    font-size: 14px;
+    color: #B9B2A0;
+    margin: 0;
+    max-width: 520px;
+    line-height: 1.5;
+  }
+
+  main { max-width: 960px; margin: 0 auto; padding: 24px; }
+
+  /* ---------- tabs ---------- */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .tab-btn {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 12px 18px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s;
+  }
+  .tab-btn.active { color: var(--ink-text); border-bottom-color: var(--ink); }
+  .tab-btn:hover:not(.active) { color: var(--ink-text); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ---------- shop panel ---------- */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  #cart-summary {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper-dim);
+  }
+
+  #chat-log, #buyer-log {
+    padding: 16px;
+    height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .msg {
+    padding: 9px 13px;
+    border-radius: 9px;
+    max-width: 78%;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .msg.user {
+    background: var(--human-bg);
+    color: var(--human);
+    align-self: flex-end;
+    border-bottom-right-radius: 3px;
+  }
+  #buyer-log .msg.user {
+    background: var(--ai-bg);
+    color: var(--ai);
+  }
+  .msg.assistant {
+    background: var(--paper-dim);
+    color: var(--ink-text);
+    align-self: flex-start;
+    border-bottom-left-radius: 3px;
+    border: 1px solid var(--rule);
+  }
+
+  .tool-event {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    background: transparent;
+    border-left: 2px solid var(--rule-strong);
+    padding: 3px 0 3px 10px;
+    align-self: flex-start;
+    max-width: 100%;
+    word-break: break-word;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--rule);
+    background: var(--paper-dim);
+  }
+  input[type=text] {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    background: var(--paper);
+    color: var(--ink-text);
+  }
+  input[type=text]:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  button.primary {
+    padding: 10px 18px;
+    border: none;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  button.primary:hover { background: var(--ink-soft); }
+  button.primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* ---------- gauges ---------- */
+  .gauges {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 24px 0;
+  }
+  .gauge {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .gauge .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .gauge.human .label { color: var(--human); }
+  .gauge.human .dot { background: var(--human); }
+  .gauge.ai .label { color: var(--ai); }
+  .gauge.ai .dot { background: var(--ai); }
+
+  .gauge-track {
+    height: 8px;
+    background: var(--paper-dim);
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .gauge-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+  .gauge.human .gauge-fill { background: var(--human); }
+  .gauge.ai .gauge-fill { background: var(--ai); }
+  .gauge-fill.over { background: var(--block); }
+
+  .gauge .figure {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-text);
+  }
+  .gauge .figure .cap { color: var(--muted); }
+
+  /* ---------- ledger ---------- */
+  h2.ledger-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 21px;
+    margin: 32px 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  button.ghost {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: none;
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    padding: 5px 10px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  button.ghost:hover { color: var(--ink-text); border-color: var(--ink-text); }
+
+  .ledger {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    position: relative;
+    padding-top: 10px;
+  }
+  .ledger::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 10px;
+    background-image: radial-gradient(circle at 10px 0, transparent 5px, var(--paper-dim) 5.5px);
+    background-size: 20px 10px;
+    background-repeat: repeat-x;
+  }
+
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 78px 76px 150px 72px 1fr;
+    gap: 10px;
+    align-items: baseline;
+    padding: 9px 16px;
+    border-bottom: 1px dashed var(--rule);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row.header-row {
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .ledger-row .time { color: var(--muted); }
+  .ledger-row .caller { font-weight: 600; }
+  .ledger-row .caller.human { color: var(--human); }
+  .ledger-row .caller.ai_buyer { color: var(--ai); }
+  .ledger-row .result { font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-block; font-size: 11px; }
+  .ledger-row .result.allowed { color: var(--allow); background: var(--allow-bg); }
+  .ledger-row .result.blocked_cap_exceeded,
+  .ledger-row .result.blocked_action_not_permitted { color: var(--block); background: var(--block-bg); }
+  .ledger-row .result.replayed_idempotent { color: var(--replay); background: var(--replay-bg); }
+  .ledger-row .amount { text-align: right; }
+  .ledger-row .reasoning { color: var(--ink-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ledger-row .reasoning:hover { white-space: normal; }
+
+  .empty-ledger {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 600px) {
+    .gauges { grid-template-columns: 1fr; }
+    .ledger-row { grid-template-columns: 1fr; gap: 2px; }
+    .ledger-row .reasoning { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Chatout — Razorpay AI Buildathon, Track 01</div>
+    <h1>Every action, on the record.</h1>
+    <p class="tagline">A merchant catalog shoppable by a human or an autonomous AI buyer — with every money-touching decision explicit, capped, and logged before a rupee moves.</p>
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="shop">Shop · Human Chat</button>
+    <button class="tab-btn" data-tab="buyer">AI Buyer Agent</button>
+  </div>
+
+  <div id="shop" class="panel active">
+    <div class="card">
+      <div id="cart-summary">cart — empty</div>
+      <div id="chat-log"></div>
+      <div class="input-row">
+        <input type="text" id="chat-input" placeholder="e.g. show me running shoes under 3000">
+        <button class="primary" id="chat-send">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="buyer" class="panel">
+    <div class="card">
+      <div class="input-row" style="border-top:none; border-bottom:1px solid var(--rule);">
+        <input type="text" id="buyer-goal" placeholder="e.g. Get me running shoes under ₹3000" value="Get me running shoes under ₹3000">
+        <button class="primary" id="buyer-run">Run buyer</button>
+      </div>
+      <div id="buyer-log" style="height:280px;"></div>
+    </div>
+  </div>
+
+  <div class="gauges">
+    <div class="gauge human">
+      <div class="label"><span class="dot"></span> Human — cumulative spend</div>
+      <div class="gauge-track"><div class="gauge-fill" id="gauge-human" style="width:0%"></div></div>
+      <div class="figure"><span id="fig-human">₹0</span> <span class="cap">/ ₹5,000 cap</span></div>
+    </div>
+    <div class="gauge ai">
+      <div class="label"><span class="dot"></span> AI Buyer — cumulative spend</div>
+      <div class="gauge-track"><div class="gauge-fill" id="gauge-ai" style="width:0%"></div></div>
+      <div class="figure"><span id="fig-ai">₹0</span> <span class="cap">/ ₹5,000 cap</span></div>
+    </div>
+  </div>
+
+  <h2 class="ledger-title">
+    Audit Ledger
+    <button class="ghost" id="refresh-audit">Refresh</button>
+  </h2>
+  <div class="ledger">
+    <div class="ledger-row header-row">
+      <div>Time</div><div>Caller</div><div>Result</div><div>Amount</div><div>Reasoning</div>
+    </div>
+    <div id="ledger-body"></div>
+  </div>
+</main>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+const API = 'http://localhost:8000';
+const SPEND_CAP = 5000;
+let sessionId = null;
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  };
+});
+
+function appendMsg(container, role, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function appendEvents(container, events) {
+  events.forEach(ev => {
+    const div = document.createElement('div');
+    div.className = 'tool-event';
+    div.textContent = `${ev.tool}(${ev.args}) → ${JSON.stringify(ev.result)}`;
+    container.appendChild(div);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function fmtTime(ts) {
+  return new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function updateGauges(entries) {
+  const sums = { human: 0, ai_buyer: 0 };
+  entries.forEach(e => {
+    if (e.result === 'allowed') sums[e.caller] = (sums[e.caller] || 0) + e.amount;
+  });
+  const humanPct = Math.min(100, (sums.human / SPEND_CAP) * 100);
+  const aiPct = Math.min(100, (sums.ai_buyer / SPEND_CAP) * 100);
+  document.getElementById('gauge-human').style.width = humanPct + '%';
+  document.getElementById('gauge-ai').style.width = aiPct + '%';
+  document.getElementById('gauge-human').classList.toggle('over', sums.human >= SPEND_CAP);
+  document.getElementById('gauge-ai').classList.toggle('over', sums.ai_buyer >= SPEND_CAP);
+  document.getElementById('fig-human').textContent = '₹' + sums.human.toLocaleString('en-IN');
+  document.getElementById('fig-ai').textContent = '₹' + sums.ai_buyer.toLocaleString('en-IN');
+}
+
+async function refreshAudit() {
+  const res = await fetch(API + '/audit');
+  const data = await res.json();
+  const body = document.getElementById('ledger-body');
+  body.innerHTML = '';
+
+  if (!data.entries.length) {
+    body.innerHTML = '<div class="empty-ledger">No entries yet — the ledger fills as orders are attempted.</div>';
+  } else {
+    data.entries.slice().reverse().forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'ledger-row';
+      row.innerHTML = `
+        <div class="time">${fmtTime(e.timestamp)}</div>
+        <div class="caller ${e.caller}">${e.caller}</div>
+        <div><span class="result ${e.result}">${e.result.replace(/_/g, ' ')}</span></div>
+        <div class="amount">₹${e.amount}</div>
+        <div class="reasoning">${e.reasoning}</div>
+      `;
+      body.appendChild(row);
+    });
+  }
+
+  updateGauges(data.entries);
+}
+document.getElementById('refresh-audit').onclick = refreshAudit;
+refreshAudit();
+
+async function ensureSession() {
+  if (sessionId) return;
+  const res = await fetch(API + '/chat/human/start', { method: 'POST' });
+  const data = await res.json();
+  sessionId = data.session_id;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  await ensureSession();
+  const log = document.getElementById('chat-log');
+  appendMsg(log, 'user', text);
+
+  const res = await fetch(API + '/chat/human/message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id: sessionId, message: text }),
+  });
+  const data = await res.json();
+
+  appendEvents(log, data.events);
+  appendMsg(log, 'assistant', data.reply);
+
+  const cartKeys = Object.keys(data.cart);
+  document.getElementById('cart-summary').textContent =
+    'cart — ' + (cartKeys.length ? cartKeys.map(k => `${k} × ${data.cart[k]}`).join(', ') : 'empty');
+
+  if (data.pending_payment) {
+    openRazorpayCheckout(data.pending_payment, log);
+  }
+
+  refreshAudit();
+}
+
+document.getElementById('chat-send').onclick = sendChatMessage;
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendChatMessage();
+});
+
+function openRazorpayCheckout(payment, log) {
+  const options = {
+    key: payment.key_id,
+    amount: payment.amount,
+    currency: payment.currency,
+    order_id: payment.order_id,
+    name: 'Chatout (test)',
+    handler: async function (response) {
+      const verifyRes = await fetch(API + '/orders/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(response),
+      });
+      const verifyData = await verifyRes.json();
+      appendMsg(log, 'assistant', 'Payment verified · ' + verifyData.razorpay_payment_id);
+      refreshAudit();
+    },
+  };
+  new Razorpay(options).open();
+}
+
+async function runBuyer() {
+  const goal = document.getElementById('buyer-goal').value.trim();
+  if (!goal) return;
+  const log = document.getElementById('buyer-log');
+  appendMsg(log, 'user', 'goal: ' + goal);
+
+  const res = await fetch(API + '/chat/buyer/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ goal }),
+  });
+  const data = await res.json();
+
+  appendEvents(log, data.events);
+  appendMsg(log, 'assistant', data.reply);
+  refreshAudit();
+}
+
+document.getElementById('buyer-run').onclick = runBuyer;
+document.getElementById('buyer-goal').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runBuyer();
+});
+</script>
+</body>
+</html>

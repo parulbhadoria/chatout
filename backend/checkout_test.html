@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><title>Chatout — Checkout Test</title></head>
+<body>
+  <h3>Checkout Test</h3>
+  <button id="pay-btn">Create ₹2499 test order & pay</button>
+  <pre id="log"></pre>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    const log = (msg) => document.getElementById('log').textContent += msg + "\n";
+
+    document.getElementById('pay-btn').onclick = async () => {
+      const res = await fetch('http://localhost:8000/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Caller': 'human' },
+        body: JSON.stringify({
+          items: [{ sku: 'P001', qty: 1 }],
+          idempotency_key: 'test-checkout-' + Date.now(),
+          reasoning: 'Manual checkout.js test'
+        })
+      });
+      const data = await res.json();
+      log("create_order response: " + JSON.stringify(data, null, 2));
+
+      if (data.result !== "allowed") { log("Blocked, stopping."); return; }
+
+      const options = {
+        key: data.razorpay_key_id,
+        amount: data.razorpay_amount,
+        currency: data.razorpay_currency,
+        order_id: data.razorpay_order_id,
+        name: "Chatout (test)",
+        handler: async function (response) {
+          log("Checkout success, verifying signature...");
+          const verifyRes = await fetch('http://localhost:8000/orders/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(response)
+          });
+          log("verify response: " + JSON.stringify(await verifyRes.json(), null, 2));
+        },
+      };
+      new Razorpay(options).open();
+    };
+  </script>
+</body>
+</html>

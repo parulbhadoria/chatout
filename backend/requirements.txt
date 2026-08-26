@@ -3,3 +3,6 @@ uvicorn[standard]
 pydantic
 pytest
 httpx
+openai
+python-dotenv
+razorpay
