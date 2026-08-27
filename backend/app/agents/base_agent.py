@@ -6,6 +6,15 @@ system prompt and how step() is driven.
 Day 5 addition: step() now records the tool calls and results made during
 that turn in self.last_events, so a web frontend can show the same
 tool-call transparency the CLI agents have always printed to the console.
+
+Later addition: _call_llm() now retries once on failure. gpt-oss-120b via
+Groq occasionally leaks an internal formatting token into a tool name
+(e.g. 'search_catalog<|channel|>commentary'), which Groq rejects as a 400
+before we ever see a tool_calls list to validate ourselves -- our existing
+malformed-tool-call handling only covers bad arguments, not a failed API
+call itself. A retry usually gets a clean response; if it doesn't twice in
+a row, step() now returns a readable message instead of letting an
+unhandled exception crash the request.
 """
 
 import json
@@ -29,13 +38,19 @@ class Agent:
         self.messages = [{"role": "system", "content": system_prompt}]
         self.last_events = []
 
-    def _call_llm(self):
-        return client.chat.completions.create(
-            model=MODEL,
-            messages=self.messages,
-            tools=self.tools_schema,
-            tool_choice="auto",
-        )
+    def _call_llm(self, retries: int = 1):
+        last_error = None
+        for attempt in range(retries + 1):
+            try:
+                return client.chat.completions.create(
+                    model=MODEL,
+                    messages=self.messages,
+                    tools=self.tools_schema,
+                    tool_choice="auto",
+                )
+            except Exception as e:
+                last_error = e
+        raise last_error
 
     def _execute_tool(self, name: str, raw_args: str) -> dict:
         if name not in self.tool_executor:
@@ -59,7 +74,12 @@ class Agent:
         consecutive_errors = 0
 
         for _ in range(MAX_TURNS):
-            response = self._call_llm()
+            try:
+                response = self._call_llm()
+            except Exception as e:
+                self.messages.append({"role": "assistant", "content": f"[agent error: LLM call failed after retry — {e}]"})
+                return f"I ran into a problem completing this request and had to stop. ({e})"
+
             msg = response.choices[0].message
 
             if not msg.tool_calls:
