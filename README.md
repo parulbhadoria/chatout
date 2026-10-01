@@ -4,6 +4,8 @@
 
 Chatout lets a merchant's catalog be shopped two ways: by a **human**, through natural chat, or by an **autonomous AI buyer agent**, given nothing but a goal. Both paths run through the exact same gated, capped, audited transaction layer — no LLM ever gets to approve, deny, or interpret a payment.
 
+**Demo Video:** [Watch here](https://youtu.be/UviA3sBnE5c)
+
 ---
 
 ## Table of contents
